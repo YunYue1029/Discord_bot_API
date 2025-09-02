@@ -9,6 +9,7 @@ project/
 │── __init__.py           # 專案初始化
 │── app.py                # FastAPI 主應用程式
 │── bot.py                # Discord Bot 類別與事件處理
+│── commands_impl.py      # Discord command 命令處理
 │── config.py             # 環境變數與設定
 │── models.py             # Pydantic 資料模型
 │── routes.py             # FastAPI API 路由
@@ -54,8 +55,18 @@ pip install -r requirements.txt
 ### 使用 uvicorn 直接啟動
 
 ```bash
+# 在專案根目錄執行
 uvicorn project.app:app --host 0.0.0.0 --port 8000
+
+# 或者指定 reload 模式（開發時使用）
+uvicorn project.app:app --host 0.0.0.0 --port 8000 --reload
 ```
+
+### 啟動後測試
+
+1. **健康檢查**: `GET http://localhost:8000/api/v1/health`
+2. **WebSocket 連線**: `ws://localhost:8000/api/v1/ws`
+3. **Bot 狀態**: `GET http://localhost:8000/api/v1/status`
 
 ## API 端點
 
@@ -82,6 +93,25 @@ GET /api/v1/health          # 健康檢查
 ### WebSocket
 ```
 WS /api/v1/ws               # WebSocket 連線
+```
+
+**連線方式：**
+- **URL**: `ws://localhost:8000/api/v1/ws`
+- **協議**: WebSocket (ws:// 或 wss://)
+- **測試工具**: 可使用 Postman、瀏覽器 JavaScript 或任何 WebSocket 客戶端
+
+**連線範例 (JavaScript):**
+```javascript
+const ws = new WebSocket('ws://localhost:8000/api/v1/ws');
+
+ws.onopen = function() {
+    console.log('WebSocket 連線已建立');
+};
+
+ws.onmessage = function(event) {
+    const data = JSON.parse(event.data);
+    console.log('收到訊息:', data);
+};
 ```
 
 ## Discord Bot 命令

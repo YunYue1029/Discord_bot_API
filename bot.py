@@ -4,6 +4,7 @@ from discord.ext import commands
 from datetime import datetime
 from typing import Optional
 from .websocket_manager import WebSocketManager
+from .commands_impl import ping_command, status_command, servers_command, channels_command
 
 logger = logging.getLogger(__name__)
 
@@ -20,9 +21,14 @@ class DiscordBot(commands.Bot):
         super().__init__(command_prefix="!", intents=intents)
         self.is_ready_flag = False
         self.websocket_manager = websocket_manager
-    
+
     async def setup_hook(self):
-        logger.info("Discord Bot 設定完成")
+        # 手動把命令註冊進來
+        self.add_command(ping_command)
+        self.add_command(status_command)
+        self.add_command(servers_command)
+        self.add_command(channels_command)
+        logger.info("Discord Bot 設定完成，已註冊命令：ping / status / servers / channels")
     
     async def on_ready(self):
         self.is_ready_flag = True
@@ -130,51 +136,3 @@ class DiscordBot(commands.Bot):
     async def broadcast_websocket(self, data: dict):
         """廣播資料到所有 WebSocket 連線"""
         await self.websocket_manager.broadcast(data)
-    
-    # Discord 命令
-    @commands.command(name="ping")
-    async def ping_command(self, ctx):
-        """測試 Bot 延遲"""
-        latency = round(self.latency * 1000)
-        await ctx.send(f"🏓 Pong! 延遲: {latency}ms")
-        logger.info(f"Ping 命令執行: {latency}ms")
-    
-    @commands.command(name="status")
-    async def status_command(self, ctx):
-        """顯示 Bot 狀態"""
-        embed = discord.Embed(title="🤖 Bot 狀態", color=0x00ff00)
-        embed.add_field(name="延遲", value=f"{round(self.latency * 1000)}ms", inline=True)
-        embed.add_field(name="伺服器數", value=len(self.guilds), inline=True)
-        embed.add_field(name="上線時間", value=f"<t:{int(self.uptime.timestamp())}:R>", inline=True)
-        await ctx.send(embed=embed)
-    
-    @commands.command(name="servers")
-    async def servers_command(self, ctx):
-        """列出所有伺服器"""
-        embed = discord.Embed(title="📋 已連接的伺服器", color=0x0099ff)
-        for guild in self.guilds:
-            embed.add_field(
-                name=guild.name,
-                value=f"ID: {guild.id}\n成員: {guild.member_count}\n頻道: {len(guild.channels)}",
-                inline=True
-            )
-        await ctx.send(embed=embed)
-    
-    @commands.command(name="channels")
-    async def channels_command(self, ctx):
-        """列出當前伺服器的頻道"""
-        if not ctx.guild:
-            await ctx.send("此命令只能在伺服器中使用")
-            return
-        
-        embed = discord.Embed(title=f"📺 {ctx.guild.name} 的頻道", color=0x0099ff)
-        text_channels = [ch for ch in ctx.guild.channels if isinstance(ch, discord.TextChannel)]
-        voice_channels = [ch for ch in ctx.guild.channels if isinstance(ch, discord.VoiceChannel)]
-        
-        embed.add_field(name="文字頻道", value="\n".join([f"#{ch.name}" for ch in text_channels[:10]]), inline=True)
-        embed.add_field(name="語音頻道", value="\n".join([f"🔊 {ch.name}" for ch in voice_channels[:10]]), inline=True)
-        
-        if len(text_channels) > 10 or len(voice_channels) > 10:
-            embed.set_footer(text="只顯示前 10 個頻道")
-        
-        await ctx.send(embed=embed)

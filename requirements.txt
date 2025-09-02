@@ -1,0 +1,21 @@
+# FastAPI 相關
+fastapi==0.116.1
+uvicorn[standard]==0.24.0
+
+# Discord Bot
+discord.py==2.3.2
+
+# 資料驗證
+pydantic==2.11.7
+
+# 環境變數
+python-dotenv==1.0.0
+
+# WebSocket 支援
+websockets==12.0
+
+# HTTP 客戶端
+aiohttp==3.12.15
+
+# 日誌和工具
+typing-extensions==4.15.0
